@@ -1,14 +1,26 @@
 ---
-title: "New Commuting Zone delineations for the U.S. based on 2020 data"
-author: "Christopher S. Fowler"
-format: pdf
-editor: visual
-bibliography: references.bib
+title: "New Commuting Zone delineation for the U.S. based on 2020 data"
+format:
+  pdf:
+    fig-pos: "H"
+knitr:
+  opts_chunk:
+    out.width: "100%"
+author: 
+  - name: Christopher S. Fowler
+    affiliations:
+    - name: Penn State University
+      id: 1
+      department: Department of Geography
+      address: 302 Walker Building
+      city: University Park
+      postal-code: 16801
+abstract: |
+  This paper documents the creation of new 'commuting zones' for the United States based on 2020 geographies and data. Commuting zones originated in the late 1980's as the result of an effort by the Economic Research Service of the U.S. Department of Agriculture to provide a county-based delineation of functional regions that covered the entire U.S. and linked rural areas to their nearest economic center. The commuting zones presented here update the 2010 era definitions. Additionally, this new delineation incorporates measures of quality to facilitate comparison with earlier decades and to account for the fact that the quality of commuting-based delineations may have been substantially affected by changing patterns of work and residence during and after the covid-19 pandemic. The methodology used here seeks to replicate as nearly as possible the method employed in earlier versions of this delineation using hierarchical clustering on a proportional flows matrix generated from county to county commuting flows. The data and all scripts used to generate them and this paper are available at https://github.com/csfowler/CommutingZones2020.git.
+keywords: [commuting zones]
+csl: springer-basic-brackets.csl
+bibliography: references.bib 
 ---
-
-## Abstract
-
-This paper documents the creation of new 'commuting zones' for the United States based on 2020 geographies and data. Commuting zones originated in the late 1980's as the result of an effort by the Economic Research Service of the U.S. Department of Agriculture to provide a county-based delineation of functional regions that covered the entire U.S. and linked rural areas to their nearest economic center. The commuting zones presented here update the 2010 era definitions available at <https://sites.psu.edu/psucz/> which were themselves an update of delineations based on data from 2000, 1990, and 1980. Additionally, these new delineations incorporate fit statistics and measures of quality to facilitate comparison with earlier decades and to account for the fact that the quality of commuting-based delineations may have been substantially affected by changing patterns of work and residence during and after the covid-19 pandemic. The methodology used here seeks to replicate as nearly as possible the method employed in earlier versions of this delineation using hierarchical clustering on a proportional flows matrix generated from county to county commuting flows. The data and all scripts used to generate them and this paper are available at \<set up git repo\>.
 
 ## Background & Summary
 
@@ -28,11 +40,13 @@ A larger issue with respect to the quality of the CZ delineations is a changing 
 
 In light of the identified uncertainty in both the data and delineation methods employed to generate CZ's it is critical that delineations be accompanied by metrics describing the quality of the delineation [@foote2016]. @fowler2020 documented a detailed set of metrics that allow researchers to distinguish between delineations but also among regions within a single delineation. These metrics allow researchers to address variations in quality as well as fine tune their analyses to differences in whether they are studying labor markets, commuting regions, or some other slight variation on the functional region concept.
 
-This data descriptor documents the generation of CZ's based on recently released data from the 2020 decennial census and incorporating the quality metrics developed by @fowler2020. The data is made freely available along with delineations from previous decades at [https://sites.psu.edu/psucz](https://sites.psu.edu/psucz/){.uri} and the complete replication code for generating the data and evaluation metrics as well as this paper with its accompanying visualizations is available at\<set up git\>
+This data descriptor documents the generation of CZ's based on recently released data from the 2020 decennial census and incorporating the quality metrics developed by @fowler2020. The data is made freely available along with delineations from previous decades at [https://sites.psu.edu/psucz](https://sites.psu.edu/psucz/){.uri} and the complete replication code for generating the data and evaluation metrics as well as this paper with its accompanying visualizations is available at <https://github.com/csfowler/CommutingZones2020.git>.
 
 ## Methods
 
-The data on which the delineation is based comes from a variety of sources consistent with delineations from earlier decades. The raw data on journey to work counts and core-based statistical area (CBSA) delineations were accessed as tables directly from the census [@u.s.censusbureau2020], while county boundaries were accessed from the Census api using tidycensus [@walker2022]. Quarterly wage data for calculating evaluation metrics was acquired directly from the Bureau of Labor Statistics [@bureauoflaborstatistics2020]. The methodology for delineating 2020 CZ's is meant to replicate the original method by @tolbert1990 with the adaptations to current data sources documented in @fowler2016. The evaluation metrics included with the data are those described in @fowler2020. The core concept underlying the delineation is a measure of connection between counties such that counties where a higher proportion of commuters travel between the counties represents a stronger connection. The metric, called 'proportional flow,' is: $$
+The data on which the delineation is based comes from a variety of sources consistent with delineations from earlier decades. The raw data on journey to work counts and core-based statistical area (CBSA) delineations were accessed as tables directly from the census [@u.s.censusbureau2020], while county boundaries were accessed from the Census api using tidycensus [@walker2022]. Quarterly wage data for calculating evaluation metrics was acquired directly from the Bureau of Labor Statistics [@bureauoflaborstatistics2020].
+
+The methodology for delineating 2020 CZ's is meant to replicate the original method by @tolbert1990 with the adaptations to current data sources documented in @fowler2016. The evaluation metrics included with the data are those described in @fowler2020. The core concept underlying the delineation is a measure of connection between counties such that counties where a higher proportion of commuters travel between the counties represents a stronger connection. The metric, called 'proportional flow,' is: $$
 \frac{C_{ij}+C_{ji}}{min\left ( W_i,W_j \right )}
 $$ where *C~ij~* and *C~ji~* represent the counts of commuters leaving county *i* for county *j* and leaving county *j* for county *i* respectively, and *W~i~* and*W~j~* are the total workforces of those two counties. Consistent with the original methodology any connection that achieved a value greater than 1 was reduced to .999; indicating maximum connectivity. The proportional flow matrix was then converted to a dissimilarity matrix by subtracting the proportional flow value from 1 and setting the diagonal of the resulting matrix equal to zero.
 
@@ -48,7 +62,7 @@ library(RColorBrewer)
 source("./CZ2020 Data Prep.R")
 
 #Should the cluster definition files be output to disk?
-output_delineation=TRUE
+output_delineation=FALSE
 #Perform cluster analysis on 2020 data
 hdata20<-hclust(d = flows.prop,method = "average") #hierarchical cluster analysis
 output<-cutree(hdata20, h=.977) #cut point based on method from fowler2016
@@ -70,7 +84,9 @@ if(output_delineation==TRUE){
 rm(list=c("flows.prop","output","out20"))
 ```
 
-The delineation of commuting zones then uses hierarchical cluster analysis [@Kaufman2009] on this dissimilarity matrix with a cutoff value of .977 utilized in the 2010 delineations as described in @fowler2016 (pp. 274-5). The result is a delineation with `r nCZs` commuting zones. Compared with `r max(county10$OUT10)` in 2010. The delineation includes six commuting zones for Puerto Rico, which was not included in the 2010 delineation. As noted in the technical validation below, alternatives to this cutoff value are worth exploring as it is somewhat arbitrary, but the value does have utility for maintaining consistency across delineations and there is no compelling evidence for the choice of an alternative in the range of descriptive and fit metrics covered below. We can examine the degree to which cluster delineations are similar using the Jacand similarity for each county *c* where *ten_c* is the list of all counties in the same commuting zone as *c* in the 2010 delineation and *twenty_c* is the list of all counties in the same commuting zone as *c* in the 2020 delineation. The Jacand similarity is defined as: $$
+The delineation of commuting zones then uses hierarchical cluster analysis [@Kaufman2009] on this dissimilarity matrix with a cutoff value of .977 utilized in the 2010 delineations as described in @fowler2016 (pp. 274-5). The result is a delineation with `r nCZs` commuting zones. Compared with `r max(county10$OUT10)` in 2010. The delineation includes six commuting zones for Puerto Rico, which was not included in the 2010 delineation. As noted in the technical validation below, alternatives to this cutoff value are worth exploring as it is somewhat arbitrary, but the value does have utility for maintaining consistency across delineations and there is no compelling evidence for the choice of an alternative in the range of descriptive and fit metrics covered below.
+
+We can examine the degree to which cluster delineations are similar using the Jacand similarity for each county *c* where *ten_c* is the list of all counties in the same commuting zone as *c* in the 2010 delineation and *twenty_c* is the list of all counties in the same commuting zone as *c* in the 2020 delineation. The Jacand similarity is defined as: $$
 Similarity_c=\frac{\left | ten_c\cap twenty_c \right |}{\left | ten_c\cup twenty_c \right |}
 $$ with a maximum of 1 and a minimum of 0. For this comparison to work a small allowance has to be made for counties and county equivalents that changed between 2010 and 2020. The most significant change is the move from counties to planning regions in Connecticut. For simplicity, county and county equivalent land-based centroids were joined to 2010-era commuting zones so that each observation in the 2020 data set has exactly one assigned 2010 commuting zone. The Jacand similarity is then based on the assignment of the 2020 observation to its 2010 commuting zone as compared to its assignment to the 2020 delineation.
 
@@ -110,7 +126,9 @@ ggplot(county20_map)+
 rm(list=c("all","both","i","ten","twenty","breaks","nCZs"))
 ```
 
-On the whole the comparison of the two delineations shows a relatively high level of similarity. The mean similarity score comparing the two delineations is `r avg`, or `r avg_noPR` if the scores for Puerto Rico (not included in the 2010 delineation) are omitted. This value jumps to `r wtd_avg_noPR` if we weight scores based on population; confirming that the most populous places are more stable in terms of their commuting zone membership. @fig-similarity shows the distribution of similarity scores for each county and shows both a high overall fit and the lack of any particularly strong regional effect when it comes to low similarity scores. Overall, the commuting zones for this delineation are quite similar to earlier delineations as further shown in @tbl-diagnostics. The only meaningful differences between the two delineations in terms of general characteristics are the smaller number of CZ's identified in 2020 (particularly notable given the addition of `r length(unique(cty[cty$FIPS %in% 72000:73000,"CZ20"]))` new CZ's for Puerto Rico), the increase in the number of non-contiguous commuting zones (from 3 to 6), and the existence of a very small commuting zone (31 sq. km) comprised solely of Falls Church City, VA whose outlying counties shift to other commuting zones in the 2020 delineation. While there is no 'correct' number of commuting zones, the consolidation of CZ's between 2010 and 2020 is consistent with the expected pattern of consolidation associated with continued growth of the largest urban areas and expanded commuting distances bringing smaller centers into the orbit of larger ones. Even the increased presence of non-contiguous counties is an expected, albeit sometimes conceptually problematic, outcome of increased commuting distances and remote-work opportunities. The existence of single county CZ's has always been a problem for this delineation method, and the addition of Falls Church City to the list of single county CZ's is a reminder that the original methodology included a step where expert opinion was allowed to modify the results-a practice abandoned for the delineations in 2000 and 2010 for its lack of transparency even if it likely increased the quality and usability of the delineations.
+On the whole the comparison of the two delineations shows a relatively high level of similarity. The mean similarity score comparing the two delineations is `r avg`, or `r avg_noPR` if the scores for Puerto Rico (not included in the 2010 delineation) are omitted. This value jumps to `r wtd_avg_noPR` if we weight scores based on population; confirming that the most populous places are more stable in terms of their commuting zone membership. @fig-similarity shows the distribution of similarity scores for each county and shows both a high overall fit and the lack of any particularly strong regional effect when it comes to low similarity scores.
+
+Overall, the commuting zones for this delineation are quite similar to earlier delineations as further shown in @tbl-diagnostics. The only meaningful differences between the two delineations in terms of general characteristics are the smaller number of CZ's identified in 2020 (particularly notable given the addition of `r length(unique(cty[cty$FIPS %in% 72000:73000,"CZ20"]))` new CZ's for Puerto Rico), the increase in the number of non-contiguous commuting zones (from 3 to 6), and the existence of a very small commuting zone (31 sq. km) comprised solely of Falls Church City, VA whose outlying counties shift to other commuting zones in the 2020 delineation. While there is no 'correct' number of commuting zones, the consolidation of CZ's between 2010 and 2020 is consistent with the expected pattern of consolidation associated with continued growth of the largest urban areas and expanded commuting distances bringing smaller centers into the orbit of larger ones. Even the increased presence of non-contiguous counties is an expected, albeit sometimes conceptually problematic, outcome of increased commuting distances and remote-work opportunities. The existence of single county CZ's has always been a problem for this delineation method, and the addition of Falls Church City to the list of single county CZ's is a reminder that the original methodology included a step where expert opinion was allowed to modify the results-a practice abandoned for the delineations in 2000 and 2010 for its lack of transparency even if it likely increased the quality and usability of the delineations.
 
 ```{r descriptives, echo=FALSE, results='asis'}
 #| label: tbl-diagnostics
@@ -122,7 +140,7 @@ cz10.descriptive<-descriptive.suite(df=county10,czName="OUT10",popCol="TotPop10"
 descriptive.output<-merge(cz20.descriptive,cz10.descriptive,by="Variable",sort = FALSE)
 colnames(descriptive.output)<-descriptive.output[1,]
 descriptive.output<-descriptive.output[-1,]
-
+descriptive.output[,c("CZ20","OUT10")]<-apply(descriptive.output[,c("CZ20","OUT10")],MARGIN = 2,FUN = function(x) as.numeric(x))
 #Table
 default.table.format(df=descriptive.output)
 rm(list=c("cz10.descriptive","cz20.descriptive","descriptive.output","avg","avg_noPR"))
@@ -145,7 +163,7 @@ fit.output<-fit.output[c(-1,-2),]
 fit.output<-fit.output[fit.output$Name %in% c("Min. Core","Core Moran's I","Min. From Core","From Core Moran's I","Contained Moran's I")==FALSE,]
 fit.output$Class<-c(rep("Core",4),rep("Connection",3),rep("Containment",3))
 #Table
-default.table.format(df=fit.output,grp="Class")
+default.table.format2(df=fit.output,grp="Class")
 
 #Write data with fit statistics
 if(output_delineation==TRUE) {
@@ -168,17 +186,15 @@ rm(list=c("cz20.fit","cz10.fit","fit.output","flows10"))
 
 ### Core
 
-*Core* refers to whether a commuting zone has an important economic center and how important a role it plays in that commuting zone. This concept is most salient in delineations such as those for (aptly named) core-based statistical areas where the role of this economic center is the driving point of interest. Core-centered delineations do tend to omit many rural places and make difficult and subjective decisions about how big an economic center has to be in order to count as a core. In advance of the release of 2020 metropolitan area delineations the Office of Management and Budget hosted a rather contentious discussion about raising the threshold size for an urban core from 50,000 to 100,000 persons [@pipa2021]. While OMB ultimately decided to retain the 50,000 person threshold, the decision raises important questions about the role of economic centers in defining functional regions and so @tbl-fit reports information on how many CZ's contain an OMB defined core county (77.6% in 2020) as well as what the average number of residents in a CZ who work in a core county (41%) and what the average share of the CZ workforce that lives in the core is (37%). The relatively low numbers for the latter two statistics are a reflection of the fact that many CZ's are conceptually designed around inclusion of exurban and rural places. The results in @tbl-fit are encouraging for their relative stability. The number of metropolitan areas that get split does go up substantially from 36 to 44 but the Core measures are otherwise quite stable across delineations, but see the more detailed analysis of this phenomenon in the technical validation section below. Visual inspection of where and how much these values changed between delineations (omitted for brevity) does not raise any red flags about the new delineation.
+*Core* refers to whether a commuting zone has an important economic center and how critical a role that center plays in the commuting zone. This concept is most salient in delineations such as those for (aptly named) core-based statistical areas where the role of this economic center is the driving point of interest. Core-centered delineations do tend to omit many rural places and make difficult and subjective decisions about how big an economic center has to be in order to count as a core. In advance of the release of 2020 metropolitan area delineations the Office of Management and Budget hosted a rather contentious discussion about raising the threshold size for an urban core from 50,000 to 100,000 persons [@pipa2021]. While OMB ultimately decided to retain the 50,000 person threshold, the decision raises important questions about the role of economic centers in defining functional regions and so @tbl-fit reports information on how many CZ's contain an OMB defined core county (77.6% in 2020) as well as what the average number of residents in a CZ who work in a core county (41%) and what the average share of the CZ workforce that lives in the core is (37%). The relatively low numbers for the latter two statistics are a reflection of the fact that many CZ's are conceptually designed around inclusion of exurban and rural places. The results in @tbl-fit are encouraging for their relative stability. The number of metropolitan areas that get split does go up substantially from 36 to 44 but the Core measures are otherwise quite stable across delineations, but see the more detailed analysis of this phenomenon in the technical validation section below. Visual inspection of where and how much these values changed between delineations (omitted for brevity) does not raise any red flags about the new delineation.
 
 ### Connection
 
-*Connection* refers to the degree to which counties within a CZ are connected economically. Based on an examination of prior use of CZ delineations this has been most heavily referenced in the economics literature where the idea of a 'labor-shed' assumes that within a CZ wages should move together because the workforce can presumably choose to work for any employer within the CZ leading to an equalizing effect on wages within the labor-shed. Following @fowler2020 I implement a measure of pairwise wage correlation based on five years of BLS wage data. High values for this correlation indicate that ups and downs in wages over a five year period are highly correlated within CZ's at an average of .91 up from .84 in the 2010 delineation. A weakness with this methodology is that CZs with just a single county have, by definition, a perfect correlation so I also provide the correlation with single-county CZ's removed, which is still high at .9. The minimum value across all CZ's is also provided ("Min. Wage Correlation"). Initial inspection of the counties with low (negative) wage correlation does not reveal any systematic flaws, only counties that are quite different from their neighbors but no more similar to other nearby counties. An example is shown in @fig-min-conn-map where CZ 154 on the Illinois/Missouri/Kentucky border includes Pope County, IL, a county dominated by the Shawnee National Forest and negatively correlated with the rest of the weakly correlated counties in the CZ. There is not a better location for Pope County in the neighboring CZ's and so this is not a flaw in the delineation but rather a reflection of the fact that CZ's are designed to be inclusive of rural places and that some places will better fit our conceptual model than others.
+*Connection* refers to the degree to which counties within a CZ are connected economically. Based on an examination of prior use of CZ delineations this has been most heavily referenced in the economics literature where the idea of a 'labor-shed' assumes that within a CZ wages should move together because the workforce can presumably choose to work for any employer within the CZ leading to an equalizing effect on wages within the labor-shed. Following Fowler @fowler2020 I implement a measure of pairwise wage correlation based on five years of BLS wage data. High values for this correlation indicate that ups and downs in wages over a five year period are highly correlated within CZ's at an average of .91 up from .84 in the 2010 delineation. A weakness with this methodology is that CZs with just a single county have, by definition, a perfect correlation so I also provide the correlation with single-county CZ's removed, which is still high at .9. The minimum value across all CZ's is also provided ("Min. Wage Correlation"). Initial inspection of the counties with low (negative) wage correlation does not reveal any systematic flaws, only counties that are quite different from their neighbors but no more similar to other nearby counties. An example is shown in @fig-min-conn-map where CZ 154 on the Illinois/Missouri/Kentucky border includes Pope County, IL, a county dominated by the Shawnee National Forest and negatively correlated with the rest of the weakly correlated counties in the CZ. There is not a better location for Pope County in the neighboring CZ's and so this is not a flaw in the delineation but rather a reflection of the fact that CZ's are designed to be inclusive of rural places and that some places will better fit our conceptual model than others.
 
 ```{r minimum connection map,echo=FALSE}
 #| label: fig-min-conn-map
-#| caption: Detailed map of CZ 154 in Illinois which has the lowest mean wage correlation in the country.
-#| sub-caption: Pope County, Illinois is mostly Shawnee National Forest and is negatively correlated with the rest of the weakly correlated counties in the CZ
-#| fig-width: 6.5
+#| fig-cap: Detailed map of CZ 154 in Illinois which has the lowest mean wage correlation in the country. Pope County, Illinois is mostly Shawnee National Forest and is negatively correlated with the rest of the weakly correlated counties in the CZ
  
 #Join county20 with fit statistics in cty.fit
 county20$GEOID_num<-as.numeric(county20$GEOID)
@@ -217,13 +233,11 @@ tm_shape(cz_tiles) +
 
 ### Containment
 
-Finally, *containment* is the measure most closely associated with the original intent of CZ's as a unit of analysis for studying rural places and their connections to economic centers. In this conceptual model CZ's function like watersheds where every drop of rain that falls stays within the watershed. In total 93% of the U.S. population lives and works in the same CZ, a clear fit with this conceptual model. When we look at averages across counties within a CZ this number falls to 88% of the population as it does not account for differences in county population size or the comparatively lower containment rates in lightly populated rural counties. This value is unchanged from the 2010 delineation. The CZ with the lowest mean containment sits at 58%, down substantially from the 65% minimum in 2010. The culprit CZ is 552 in Virginia, which sits South and West of the D.C. metro area and North and West of the Richmond metro area. 552 contains Fauquier County, considered part of the DC metro area and exhibiting a strong negative pairwise wage correlation with the other counties in 552 (-.28). Fauquier would seemingly benefit from being transferred into CZ 91 just to the North and East, but it gets pulled a little too hard towards the Richmond-centered CZ 543 to the South, and ends up serving as the 'core' for its own CZ instead of being attached to either of the larger metro areas. @fig-min-cotn-map demonstrates the way this pattern is repeated across the region with smaller CZ's delineated between larger metro areas rather than being distributed to the major metros. A higher cutoff value in the hierarchical clustering algorithm would tend to reduce this problem, but would over-aggregate counties in other parts of the country where commuting patterns overlap less. There is not a clear missallocation here, only another example of the compromises entailed in any delineation seeking to cover a geography as diverse as is found in the U.S..
+Finally, *containment* is the measure most closely associated with the original intent of CZ's as a unit of analysis for studying rural places and their connections to economic centers. In this conceptual model CZ's function like watersheds where every drop of rain that falls stays within the watershed. In total 93% of the U.S. population lives and works in the same CZ, a clear fit with this conceptual model. When we look at averages across counties within a CZ this number falls to 88% of the population as it does not account for differences in county population size or the comparatively lower containment rates in lightly populated rural counties. This value is unchanged from the 2010 delineation. The CZ with the lowest mean containment sits at 58%, down substantially from the 65% minimum in 2010. The culprit CZ is 552 in Virginia, which sits South and West of the D.C. metro area and North and West of the Richmond metro area. 552 contains Fauquier County, considered part of the DC metro area and exhibiting a strong negative pairwise wage correlation with the other counties in 552 (-.28). Fauquier would seemingly benefit from being transferred into CZ 91 just to the North and East, but it gets pulled a little too hard towards the Richmond-centered CZ 543 to the South, and ends up serving as the 'core' for its own CZ instead of being attached to either of the larger metro areas. A careful examination of @fig-min-cotn-map demonstrates the way this pattern is repeated across the region with smaller CZ's delineated between larger metro areas rather than being distributed to the major metros. A higher cutoff value in the hierarchical clustering algorithm would tend to reduce this problem, but would over-aggregate counties in other parts of the country where commuting patterns overlap less. There is not a clear missallocation here, only another example of the compromises entailed in any delineation seeking to cover a geography as diverse as is found in the U.S..
 
 ```{r minimum containment map, echo=FALSE}
 #| label: fig-min-cotn-map
-#| caption: Detailed map of CZ 552 in Virginia which has the lowest mean containment in the country.
-#| sub-caption: Fauquier County, Virginia is part of the DC metropolitan area but also connected to Richmond, VA
-#| fig-width: 6.5
+#| fig-cap: Detailed map of CZ 552 in Virginia which has the lowest mean containment in the country. Fauquier County, Virginia is part of the DC metropolitan area but also connected to Richmond, VA
 
 #Map of CZ 552
 cz552<-county20[county20$CZ20 %in% c(91,542,544,546,550,551,552),]
@@ -256,7 +270,7 @@ A comparison of the delineations for 2010 and 2020 confirms the general suitabil
 
 ## Data Records
 
-The data associated with this paper are available at the county scale (with 3222 counties assigned to a commuting zone) and at the commuting zone scale (592 commuting zones each assigned an ID). The files are available in two formats; comma separated for ease of use and ESRI shapefile with geometry attached for use in GIS applications. The GIS files are delivered with the data projected to EPSG 5070, U.S. Geological Survey Albers Equal Area Conic projection. Two additional files are made available in csv format containing fit statistics for the county and commuting zones. The fit statistics are those presented in @tbl-fit as well as others described in @fowler2020 and are meant to allow users to examine differences within and between commuting zones in greater detail. All files are available at <https://sites.psu.edu/psucz/> and can be generated from scratch with the code provided at \<git repo\>
+The data associated with this paper are available at the county scale (with 3222 counties assigned to a commuting zone) and at the commuting zone scale (593 commuting zones each assigned an ID). The files are available in two formats; comma separated for ease of use and ESRI shapefile with geometry attached for use in GIS applications. The GIS files are delivered with the data projected to EPSG 5070, U.S. Geological Survey Albers Equal Area Conic projection. Two additional files are made available in csv format containing fit statistics for the county and commuting zones. The fit statistics are those presented in @tbl-fit as well as others described in @fowler2020 and are meant to allow users to examine differences within and between commuting zones in greater detail. All files are available at <https://sites.psu.edu/psucz/> and can be generated from scratch with the code provided at <https://github.com/csfowler/CommutingZones2020.git>.
 
 ## Technical Validation
 
@@ -264,7 +278,7 @@ Three possible issues in the CZ delineations are raised by the similarity measur
 
 ### Optimizing Jacand Similarity
 
-In the original methodology for delineating CZ's @tolbert1987 used a cutoff value of .98 in the hierarchical cluster analysis that defined their delineation. @fowler2016 revised this number to .977 as a way of approximating the 1990 delineation (which could not be precisely replicated based on the provided methodology) and carried this value forward to the 2010 delineation. For consistency I use that cutoff here to define the 2020 delineation. Since the number itself is arbitrary and intended to create an approximation of the earlier delineation it is worth considering whether alternative values for the cutoff might improve the Jacand similarity across delineations. To that end @fig-jacand shows the results of a similarity test on cutoffs across a range of values from .8 to .999 and shows the maximum value for Jacand similarity was achieved at a cutoff of .972. At this value the mean Jacand similarity across all CZ's was .679 as compared to .677 at the .977 cutoff. The difference is small but suggests that the cutoff value could be optimized to improve the overall similarity between delineations. However, the difference is small enough that it is unlikely to have a significant impact on the results of most studies and consistency with prior delineations is likely to be more important than the small increase in similarity.
+In the original methodology for delineating CZ's Tolbert et al. @tolbert1987 used a cutoff value of .98 in the hierarchical cluster analysis that defined their delineation. Fowler et al. @fowler2016 revised this number to .977 as a way of approximating the 1990 delineation (which could not be precisely replicated based on the provided methodology) and carried this value forward to the 2010 delineation. For consistency I use that cutoff here to define the 2020 delineation. Since the number itself is arbitrary and intended to create an approximation of the earlier delineation it is worth considering whether alternative values for the cutoff might improve the Jacand similarity across delineations. To that end @fig-jacand shows the results of a similarity test on cutoffs across a range of values from .8 to .999 and shows the maximum value for Jacand similarity was achieved at a cutoff of .972. At this value the mean Jacand similarity across all CZ's was .679 as compared to .677 at the .977 cutoff. The difference is small but suggests that the cutoff value could be optimized to improve the overall similarity between delineations. However, the difference is small enough that it is unlikely to have a significant impact on the results of most studies and consistency with prior delineations is likely to be more important than the small increase in similarity.
 
 ```{r jacand, echo=FALSE}
 #| label: fig-jacand
@@ -279,21 +293,22 @@ for(i in 1:length(sims$cutoff)){
 #plot mean and sd of jacand similarity
 ggplot(sims,aes(x=cutoff,y=Mean))+geom_line()+geom_ribbon(aes(ymin=Mean-SD,ymax=Mean+SD),alpha=.2)+
   geom_vline(xintercept=.977,linetype="dashed")+
-  annotate("text",x=.9785,y=.82,angle=270, label="Selected Cutoff at .977")+
+  annotate("text",x=.9785,y=.83,angle=270, label="Selected Cutoff at .977")+
   geom_vline(xintercept=.972,linetype="dotted")+
-  annotate("text",x=.9735,y=.37,angle=270, label="Maximum Mean Jacand Similarity at 972")+
+  annotate("text",x=.9735,y=.35,angle=270, label="Maximum Mean Jacand Similarity at 972")+
   theme_bw()+theme(legend.position = "none")+
   labs(x="Cutoff Value",y="Mean Jacand Similarity")
 ```
 
 #### Non-Contiguous Commuting Zones
 
-The initial delineation of commuting zones in 1987 relied on post-hoc expert guidance that moved counties between commuting zones to achieve a result that the analysts felt was more suitable than the raw output of the hierarchical cluster analysis described in the methodology. A key component of this work was to insure that commuting zones were all contiguous. Later revisions in 2000 and 2010 retained the published methodology but dropped the quality control step and allowed for the existence of non-contiguous counties to be part of commuting zones. This is arguably a reasonable decision given the heterogeneity of county sizes and commuting patterns across the United States. It also supports replicability and simplicity in describing the delineation. Nevertheless, the idea of having to drive through a different commuting zone (or multiple zones) to get back to the commuting zone in which you began the trip conflicts with the conceptual model of what a commuting zone is meant to represent. Looking to other kinds of districting problems there is no clear solution; most political districting requires contiguity as a criteria for drawing district @webster2013 while school districts regularly create non-contiguous attendance zones to balance school populations and to promote (or constrain) equitable access to education. This is to say that we cannot *a priori* reject a delineation because of the presence of non-contiguous districts. An analysis of the non-contiguous counties in the 2020 delineation finds a mixture of anomalies based on relatively small commuting flows, particularly in Alaska, and three commuting zone assignments that appear to be real failures of the method to correctly assign counties. @fig-contiguity shows the non-contiguous counties and the commuting zones to which they are assigned. The most significant issue involves San Diego County, California which is inexplicably assigned to a commuting zone to the east of Sacramento that includes South Lake Tahoe and part of Western Nevada. A closer inspection of the commuting data for 2020 shows San Diego containing 1.588 million residents who work within the county but only twelve-thousand who work in neighboring Orange County, seven-thousand in neighboring Riverside County, and six-thousand in nearby Los Angeles County. This allocation seems unlikely in the extreme, but it is what the survey on commuting and the relatively simplistic proportional flow methodology gives us. Similar phenomena (though impacting a much smaller number of people) are visible in Marion County, Mississippi and Madison County, Florida. In both cases the counties are assigned to commuting zones that are geographically distant with credible alternatives to which they could be assigned immediately adjacent to them. A key goal of this paper is to make the commuting zones entirely consistent with previous delineations AND completely replicable. This means that the non-contiguous counties should be retained, but tbl-transform offers a short list of commuting zone reassignments that fix all but one of the non-contiguity problems and result in a more compelling final delineation.
+The initial delineation of commuting zones in 1987 relied on post-hoc expert guidance that moved counties between commuting zones to achieve a result that the analysts felt was more suitable than the raw output of the hierarchical cluster analysis described in the methodology. A key component of this work was to insure that commuting zones were all contiguous. Later revisions in 2000 and 2010 retained the published methodology but dropped the quality control step and allowed for the existence of non-contiguous counties to be part of commuting zones. This is arguably a reasonable decision given the heterogeneity of county sizes and commuting patterns across the United States. It also supports replicability and simplicity in describing the delineation. Nevertheless, the idea of having to drive through a different commuting zone (or multiple zones) to get back to the commuting zone in which you began the trip conflicts with the conceptual model of what a commuting zone is meant to represent. Looking to other kinds of districting problems there is no clear solution; most political districting requires contiguity as a criteria for drawing district @webster2013 while school districts regularly create non-contiguous attendance zones to balance school populations and to promote (or constrain) equitable access to education. This is to say that we cannot *a priori* reject a delineation because of the presence of non-contiguous districts. An analysis of the non-contiguous counties in the 2020 delineation finds a mixture of anomalies based on relatively small commuting flows, particularly in Alaska, and three commuting zone assignments that appear to be real failures of the method to correctly assign counties.
+
+@fig-contiguity shows the non-contiguous counties and the commuting zones to which they are assigned. The most significant issue involves San Diego County, California which is inexplicably assigned to a commuting zone to the east of Sacramento that includes South Lake Tahoe and part of Western Nevada. A closer inspection of the commuting data for 2020 shows San Diego containing 1.588 million residents who work within the county but only twelve-thousand who work in neighboring Orange County, seven-thousand in neighboring Riverside County, and six-thousand in nearby Los Angeles County. This allocation seems unlikely in the extreme, but it is what the survey on commuting and the relatively simplistic proportional flow methodology gives us. Of additional concern as far as the methodology goes, there are only sixty eight people making the commute between the northern counties in the CZ and San Diego. Similar phenomena (though impacting a much smaller number of people) are visible in Marion County, Mississippi and Madison County, Florida. In both cases the counties are assigned to commuting zones that are geographically distant with credible alternatives to which they could be assigned immediately adjacent to them. @fig-contiguity shows the non-contiguous counties and their assigned CZ's.
 
 ```{r contiguity, echo=FALSE}
 #| label: fig-contiguity
-#| fig-cap: "Non-Contiguous Counties 2020 Commuting Zones"
-#| fig-subcap: "Non-Contiguous Counties (marroon) with arrows pointing to the commuting zone (in blue) to which they are assigned"
+#| fig-cap: "Non-Contiguous Counties 2020 Commuting Zones. Non-Contiguous Counties (marroon) with arrows pointing to the commuting zone (in blue) to which they are assigned"
 
 #Measure distances between non-contiguous counties and their nearest co-commuting zone border
 #nc20<-getDistanceOfNonContiguous(df = county20,czName = "CZ20",fips = "GEOID")
@@ -328,36 +343,38 @@ ggplot()+
   theme_void()+theme(legend.position = "none")
 ```
 
+A key goal of this paper is to make the commuting zones entirely consistent with previous delineations AND completely replicable. This means that the non-contiguous counties should be retained, but @tbl-transform offers a short list of commuting zone reassignments that fix all but one of the non-contiguity problems and result in a more compelling final delineation.
+
 ```{r transform, echo=FALSE}
 #| label: tbl-transform
 #| tab-cap: "Suggested changes in commuting zones to solve contiguity problems"
 #| fig-width: 6.5
-# tbl_transform<-data.frame(GEOID=c("06073","08111","20067","02060","02185","28091","12079"),
-#            "County Name"=c("San Diego","San Juan","Grant","Bristol Bay","North Slope","Marion","Madison"),
-#            "State Name"=c("CA","CO","KS","AK","AK","MS","FL"),
-#            "CZ20"=c(59,80,77,15,15,306,99),
-#            "New CZ20"=c(594,79,211,25,15,304,92),
-#            Notes=c("New single county CZ",
-#                    "Add to adjacent CZ",
-#                    "Add to adjacent CZ",
-#                    "Add to adjacent CZ",
-#                    "Retain non-adjacent CZ",
-#                    "Add to adjacent CZ",
-#                    "Add to adjacent CZ"
-#                    ))
-#%>%
-#  default.table.format()
+tbl_transform<-data.frame(GEOID=c("06073","08111","20067","02060","02185","28091","12079"),
+           "County Name"=c("San Diego","San Juan","Grant","Bristol Bay","North Slope","Marion","Madison"),
+           "State Name"=c("CA","CO","KS","AK","AK","MS","FL"),
+           "CZ20"=c(59,80,77,15,15,306,99),
+           "New CZ20"=c(594,79,211,25,15,304,92),
+           Notes=c("New single county CZ",
+                   "Add to adjacent CZ",
+                   "Add to adjacent CZ",
+                   "Add to adjacent CZ",
+                   "Retain non-adjacent CZ",
+                   "Add to adjacent CZ",
+                   "Add to adjacent CZ"
+                   ))
+ default.table.format3(df=tbl_transform)
 ```
 
 #### Splitting of Metropolitan Areas
 
-A third area of concern with the revised delineations for 2020 is that they have a significantly increased tendency to split CBSA's when compared to the 2010 delineation (44 as oposed to 36). This increase is somewhat misleading as five additional CBSA splits occur in Puerto Rico, which was not covered by the earlier delineation. CBSA's are delineated with broadly similar criteria; including reliance on Core counties (as defined by population) and strength of connection between counties as measured by commuting data so we should expect CZ's to generally retain these connections between counties. When CZ's split CBSA's it is potentially a sign that we have too many CZ's (they are subdividing functional regions). Conversely, if we programatically preserve CBSA's we will obtain a delineation of CZ's where the functional regions are far larger than intended. To examine this issue I examine the CBSA's that are split by the 2020 delineation. As @fig-split demonstrates the places where CZ's split CBSA's are concentrated in parts of the country with overlapping commuting patterns where the clustering algorithm tends to create smaller CZ's between metropolitan areas. These smaller CZ's end up splitting off metropolitan counties with some regularity. The detail in @fig-min-cotn-map offers an example that is repeated in multiple places where CBSA's are split. Splits tend to be in areas where the functional region concept breaks down somewhat with weak ties spread across multiple cores as it does between the DC and Richmond metro areas. If we reduce the number of commuting zones to eliminate these 'between' CZs we will end up with commuting zones that are too large and capture multiple major economic cores in one unit. While the smaller size of the CZs is a compromise, this compromise is consistent with past practice and an examination of the split CBSAs does not reveal a clear alternative or improvement.
+A third area of concern with the revised delineations for 2020 is that they have an increased tendency to split CBSA's when compared to the 2010 delineation (44 as oposed to 36). This increase is somewhat misleading as five additional CBSA splits occur in Puerto Rico, which was not covered by the earlier delineation. CBSA's are delineated with broadly similar criteria; including reliance on Core counties (as defined by population) and strength of connection between counties as measured by commuting data so we should expect CZ's to generally retain these connections between counties. When CZ's split CBSA's it is potentially a sign that we have too many CZ's (they are subdividing functional regions). Conversely, if we programatically preserve CBSA's we will obtain a delineation of CZ's where the functional regions are far larger than intended.
+
+To explore the significance of this issue within the 2020 CZ delineation I examine the CBSA's that are split by the clustering algorithm. As @fig-split demonstrates the places where CZ's split CBSA's are concentrated in parts of the country with overlapping commuting patterns where the clustering algorithm tends to create smaller CZ's between metropolitan areas. These smaller CZ's end up splitting off metropolitan counties with some regularity. The detail in @fig-min-cotn-map offers an example that is repeated in multiple places where CBSA's are split. Splits tend to be in areas where the functional region concept breaks down somewhat with weak ties spread across multiple cores as it does between the DC and Richmond metro areas. If we reduce the number of commuting zones to eliminate these 'between' CZs we will end up with commuting zones that are too large and capture multiple major economic cores in one unit. While the smaller size of the CZs is a compromise, this compromise is consistent with past practice and an examination of the split CBSAs does not reveal a clear alternative or improvement.
 
 ```{r split, echo=FALSE}
 #| label: fig-split
-#| fig-cap: "CBSA's Split by 2020 Delineation"
-#| fig-subcap: "The 2020 delineation splits 44 CBSA's, 8 more than the 2010 delineation"
-#| fig-width: 6.5
+#| fig-cap: "CBSA's Split by 2020 Delineation. The 2020 delineation splits 44 CBSA's, 8 more than the 2010 delineation"
+
 #which CZ's split 2020 CBSA's and vice versa
 splits<-county20[,c("CBSA","CZ20")] %>% st_drop_geometry() %>% table() %>%
 as.data.frame() %>% filter(Freq>0) #get a table of CBSA and CZ20 and filter to only those with a frequency greater than 0
@@ -377,17 +394,17 @@ us<-st_union(county20_map[county20_map$FIPS %in% c(2000:3000,15000:16000)==FALSE
 #length(unique(puerto_rico$CBSA))
 
 #plot CBSA's that are split by 2020 delineation
-# ggplot()+
-#   geom_sf(data=us,fill="white",alpha=.5)+
-#   geom_sf(data=CZs_that_are_splitters,aes(fill="CZ's that split CBSA's",color="CZ boundary",alpha=.25))+
-#   geom_sf(data=CBSA_that_are_split,aes(fill="CBSA's that are split",color="CBSA boundary",alpha=.25))+
-#   scale_fill_manual(values=c("red","blue"))+
-#   scale_color_manual(values=c("red","blue"))+
-#   theme_void()+theme(legend.position="bottom")+guides(alpha="none",fill=guide_legend(title = element_blank()),color=guide_legend(title = element_blank()))
+ggplot()+
+  geom_sf(data=us,fill="white",alpha=.5)+
+  geom_sf(data=CZs_that_are_splitters,aes(fill="CZ's that split CBSA's",color="CZ boundary",alpha=.25))+
+  geom_sf(data=CBSA_that_are_split,aes(fill="CBSA's that are split",color="CBSA boundary",alpha=.25))+
+  scale_fill_manual(values=c("red","blue"))+
+  scale_color_manual(values=c("red","blue"))+
+  theme_void()+theme(legend.position="bottom")+guides(alpha="none",fill=guide_legend(title = element_blank()),color=guide_legend(title = element_blank()))
 ```
 
 ## Code Availability
 
-All code used to generate the data from publicly available sources as well as the code for generating this paper with its accompanying figures is available at <set up git repo>
+All code used to generate the data from publicly available sources as well as the code for generating this paper with its accompanying figures is available at <https://github.com/csfowler/CommutingZones2020.git>.
 
 ## References

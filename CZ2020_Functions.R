@@ -363,22 +363,22 @@ descriptive.suite<-function(df,czName,popCol){
    result<-rbind(result,c("No. of Non-Contiguous CZs",non_contig_czs))#Number of unique non-contiguous clusters)))
    #Population in clusters
    suppressWarnings( czPop<-df2[,c(popCol,czName)]%>%group_by(pick(czName))%>%summarize(pop=sum(pick(popCol))))
-   result<-rbind(result,c("Min Population in Cluster",
+   result<-rbind(result,c("Min Population in CZ",
                           min(czPop$pop)))#Min population in cluster
-   result<-rbind(result,c("Average Population in Cluster",
+   result<-rbind(result,c("Average Population in CZ",
                           round(mean(czPop$pop),0)))#Average population in cluster
-   result<-rbind(result,c("Max Population in Cluster",
+   result<-rbind(result,c("Max Population in CZ",
                           max(czPop$pop)))#Max population in cluster
    #Area of clusters
    suppressWarnings(area<-df2[,c(czName,"area")]%>%group_by(pick(czName))%>%summarize(area=sum(area)))
-   result<-rbind(result,c("Min Area of Clusters (sq.km)",
+   result<-rbind(result,c("Min Area of CZ (sq.km)",
                           round(min(area$area),0)))#Min area of clusters
-   result<-rbind(result,c("Average Area of Clusters (sq.km)",
+   result<-rbind(result,c("Average Area of CZ (sq.km)",
                           round(mean(area$area))))#Average area of clusters
-   result<-rbind(result,c("Max Area of Clusters (sq.km)",
+   result<-rbind(result,c("Max Area of CZ (sq.km)",
                           round(max(area$area),0)))#Max area of clusters
    #Compactness of labor-sheds
-   result<-rbind(result,c("Compactness of Labor-Sheds",
+   result<-rbind(result,c("Compactness of CZ's",
                           round(checkCompactness(df,czName),2)))#Compactness of labor-sheds
    return(result)
 }
@@ -794,15 +794,14 @@ examine_cty<-function(fips,czName="CZ20",df=county20){
   print(fl)
 }
 #Reusable table formatting options
-default.table.format<-function(df,grp=FALSE){
-  if(grp ==FALSE){
-    gt(df)
-  }else{
-    gt(df,groupname_col = grp)
-  } %>%
-  fmt_number(
+default.table.format<-function(df){
+  gt(df)%>%
+    fmt_number(
     decimals = 1,
-    use_seps = TRUE
+    use_seps = TRUE,
+    sep_mark = ",",
+    drop_trailing_dec_mark = TRUE,
+    drop_trailing_zeros = TRUE
   )%>%
   cols_label(
     Name = md("Measure"),
@@ -834,4 +833,82 @@ default.table.format<-function(df,grp=FALSE){
     table.border.right.color = "black",
     row_group.as_column=TRUE
   )
+}
+#Reusable table formatting options
+default.table.format2<-function(df,grp=FALSE){
+    gt(df,groupname_col = grp)%>%
+    fmt_number(
+      decimals = 1,
+      use_seps = TRUE,
+      sep_mark = ",",
+      drop_trailing_dec_mark = TRUE,
+      drop_trailing_zeros = TRUE
+    )%>%
+    cols_label(
+      Name = md("Measure"),
+      CZ20 = md("2020"),
+      OUT10 = md("2010")
+    ) %>%
+    #bold header
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_column_labels()
+    )%>%
+    #right justify
+    tab_style(
+      style = cell_text(align = "right"),
+      locations = cells_body(
+        columns = c(CZ20,OUT10)
+      )
+    )%>%
+    #add lines
+    tab_options(
+      table.font.size = 12,
+      table.border.top.width = px(1),
+      table.border.bottom.width = px(1),
+      table.border.left.width = px(1),
+      table.border.right.width = px(1),
+      table.border.top.color = "black",
+      table.border.bottom.color = "black",
+      table.border.left.color = "black",
+      table.border.right.color = "black",
+      row_group.as_column=TRUE
+    )
+}
+default.table.format3<-function(df){
+  df<-df[order(df$GEOID),]
+  gt(df)%>%
+    fmt_number(
+      decimals = 1,
+      use_seps = TRUE,
+      sep_mark = ",",
+      drop_trailing_dec_mark = TRUE,
+      drop_trailing_zeros = TRUE
+    )%>%
+    cols_label(
+      GEOID = md("FIPS"),
+      County.Name = md("County Name"),
+      State.Name = md("State Name"),
+      CZ20 = md("CZ ID"),
+      New.CZ20 = md("New CZ ID"),
+      Notes=md("Notes")
+    ) %>%
+    #bold header
+    tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_column_labels()
+    )%>%
+        #add lines
+    tab_options(
+      table.font.size = 12,
+      table.border.top.width = px(1),
+      table.border.bottom.width = px(1),
+      table.border.left.width = px(1),
+      table.border.right.width = px(1),
+      table.border.top.color = "black",
+      table.border.bottom.color = "black",
+      table.border.left.color = "black",
+      table.border.right.color = "black",
+      row_group.as_column=TRUE
+    )
 }
