@@ -407,4 +407,13 @@ ggplot()+
 
 All code used to generate the data from publicly available sources as well as the code for generating this paper with its accompanying figures is available at <https://github.com/csfowler/CommutingZones2020.git>.
 
+##Author Contributions
+Christopher Fowler was the sole author of this publication and the code used to generate it.
+
+## Competing Interests
+The author declares no competing interests.
+
+##Acknowledgements
+The author would like to thank John Cromartie for helpful comments on an earlier draft of this paper.
+
 ## References
