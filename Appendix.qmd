@@ -1,0 +1,262 @@
+---
+title: "Uncertainty analysis"
+format: html
+editor: visual
+---
+Appedix examining uncertainty in Commuting Zone 2020 assignmentsa
+```{r CZ_Simulation,echo=FALSE, include=FALSE}
+source("./CZ2020_Functions.R")
+library(readxl)
+library(tidyverse)
+library(sf)
+library(rgeoda)
+library(ggpubr)
+
+rnorm2<-function(mn,y){
+  rand<-rnorm(n=1,mean=mn,sd=y)
+  rand<-max(0,rand)
+  return(round(rand,0))
+}
+
+if(!file.exists("./Output Data/sim_result.RData")){
+#Having replicated the assignment based on the original flow values we now test this process with flow values drawn from the provided distribution.
+
+data <- read_excel("./Input Data/table1.xlsx",sheet = "Table 1",skip = 7)
+data<-data[1:122335,] #drop text from end
+data<-data[,c(1,2,5,6,9,10)] #reduce raw data to just resident state and county, work state and county, and flow between
+colnames(data)<-c("RES_ST","RES_CTY","WK_ST","WK_CTY","Flow","MOE")
+data$Res_FIPS<-paste0(data$RES_ST,data$RES_CTY) #Generate residence county FIPS
+data$WK_ST<-substring(data$WK_ST,2) 
+data$Wk_FIPS<-paste0(data$WK_ST,data$WK_CTY) #Generate work county FIPS
+data<-data[,c("Res_FIPS","Wk_FIPS","Flow","MOE")] #Reduce to just FIPS and flow
+colnames(data)<-c("Cnty_Res","Cnty_Work","FlowCount","MOE")
+data$Sd<-data$MOE/1.645 #offical census conversion from MOE to standard deviation 
+hold<-data
+
+totSteps=1000
+for(i in 1:totSteps){ #loop through 1000 simulations
+  data<-hold
+  flag=TRUE
+  while(flag==TRUE){ #loop until a valid set of flows is generated
+    data$FlowCount<-apply(data,MARGIN = 1,FUN=function(x) rnorm2(as.numeric(x["FlowCount"]),as.numeric(x["Sd"]))) #replace point estimate flow with sampled flow
+    flows<-prepData(data = data[,c("Cnty_Res","Cnty_Work","FlowCount")])#reshaping data to a square matrix with all valid county pairs
+    if(min(rowSums(flows[,-1],na.rm = TRUE))==0){ #check for any rows with no flows
+      print("Zero flow county simulated, re-sampling")
+    }else{
+      flows.prop<-propFlow(data = flows) # Convert to Proportional Flow measure from 1980 methodology
+      hdata20<-hclust(d = flows.prop,method = "average") #hierarchical cluster analysis
+      output<-cutree(hdata20, h=.977) #cut point based on method from fowler2016
+      nCZs<-length(unique(output)) #593 clusters.
+      out20<-data.frame(
+      FIPS=as.numeric(str_sub(names(output),start=8)), #Need to extract FIPS from names of output
+      CZ20=output,stringsAsFactors = FALSE) #create dataframe with county names and cluster assignments
+      if(i==1){
+        sim_result<-out20[,1:2]
+      }else{
+        sim_result<-merge(sim_result,out20,by="FIPS",all=TRUE)
+      }
+      colnames(sim_result)[i+1]<-paste0("Run_",i)
+      print(paste0("Run ",i," CZs = ",nCZs))
+      flag=FALSE
+    } #end simulation run
+  } #end while loop
+} #end simulation loop 
+sim_result20<-sim_result
+save(sim_result20,file="./Output Data/sim_result.RData")
+}else{
+  load("./Output Data/sim_result.RData")
+}
+
+if(!file.exists("./Output Data/sim_result10.RData")){
+#Having replicated the assignment based on the original flow values we now test this process with flow values drawn from the provided distribution.
+load("./Intermediate Data/counties10.Rdata")
+data <- read_excel("./Input Data/table10.xlsx",sheet = "Table1",skip = 4)
+data<-data[1:136794,] #drop text from end
+data<-data[,1:6] #reduce raw data to just resident state and county, work state and county, and flow between
+colnames(data)<-c("RES_ST","RES_CTY","WK_ST","WK_CTY","Flow","MOE")
+data$Res_FIPS<-paste0(data$RES_ST,data$RES_CTY) #Generate residence county FIPS
+data$WK_ST<-substring(data$WK_ST,2) 
+data$Wk_FIPS<-paste0(data$WK_ST,data$WK_CTY) #Generate work county FIPS
+data<-data[,c("Res_FIPS","Wk_FIPS","Flow","MOE")] #Reduce to just FIPS and flow
+colnames(data)<-c("Cnty_Res","Cnty_Work","FlowCount","MOE")
+data$Cnty_Res<-as.numeric(data$Cnty_Res)
+data$Cnty_Work<-as.numeric(data$Cnty_Work)
+data$Sd<-data$MOE/1.645 #offical census conversion from MOE to standard deviation 
+#reduce data to only counties in the 2010 delineation
+data<-data[data$Cnty_Res %in% county10$FIPS & data$Cnty_Work %in% county10$FIPS,]
+hold<-data
+
+totSteps=1000
+for(i in 1:totSteps){ #loop through 1000 simulations
+  data<-hold
+  flag=TRUE
+  while(flag==TRUE){ #loop until a valid set of flows is generated
+    data$FlowCount<-apply(data,MARGIN = 1,FUN=function(x) rnorm2(as.numeric(x["FlowCount"]),as.numeric(x["Sd"]))) #replace point estimate flow with sampled flow
+    flows<-prepData(data = data[,c("Cnty_Res","Cnty_Work","FlowCount")])#reshaping data to a square matrix with all valid county pairs
+    if(min(rowSums(flows[,-1],na.rm = TRUE))==0){ #check for any rows with no flows
+      print("Zero flow county simulated, re-sampling")
+    }else{
+      flows.prop<-propFlow(data = flows) # Convert to Proportional Flow measure from 1980 methodology
+      hdata20<-hclust(d = flows.prop,method = "average") #hierarchical cluster analysis
+      output<-cutree(hdata20, h=.977) #cut point based on method from fowler2016
+      nCZs<-length(unique(output)) #593 clusters.
+      out20<-data.frame(
+      FIPS=as.numeric(str_sub(names(output),start=8)), #Need to extract FIPS from names of output
+      CZ20=output,stringsAsFactors = FALSE) #create dataframe with county names and cluster assignments
+      if(i==1){
+        sim_result<-out20[,1:2]
+      }else{
+        sim_result<-merge(sim_result,out20,by="FIPS",all=TRUE)
+      }
+      colnames(sim_result)[i+1]<-paste0("Run_",i)
+      print(paste0("Run ",i," CZs = ",nCZs))
+      flag=FALSE
+    } #end simulation run
+  } #end while loop
+} #end simulation loop 
+sim_result10<-sim_result
+save(sim_result10,file="./Output Data/sim_result10.RData")
+}else{
+  load("./Output Data/sim_result10.RData")
+}
+
+
+#now deal with visualizing
+#Generate matrix of Jacand similarity between CZ20 and simulated CZs
+if(!file.exists("./Output Data/jdat.RData")){
+  jac_sim<-sim_result
+  cty20<-st_read("./Output Data/county20.shp")
+  cty20$FIPS<-as.numeric(cty20$GEOID)
+  cty20<-cty20[order(cty20$FIPS),]
+  jac_sim<-jac_sim[order(jac_sim$FIPS),]
+  #identical(cty20$FIPS,jac_sim$FIPS)
+  cty<-st_drop_geometry(cty20)
+  #Calculate Jacand Similarity for each county
+  for (j in 2:ncol(jac_sim)){
+    for(i in 1:nrow(jac_sim)){
+      ten<-sim_result[which(sim_result[,j]==sim_result[i,j]),"FIPS"]
+      twenty<-cty[which(cty$CZ20==cty[i,"CZ20"]),"FIPS"]
+      #calculate jacand similarity
+      both<-length(intersect(ten,twenty))
+      all<-length(unique(c(ten,twenty)))
+      jac_sim[i,j]<-both/all
+    }
+  }
+  jmean<-apply(jac_sim[,-1],1,mean)
+  jstd<-apply(jac_sim[,-1],1,sd)
+  jdat<-data.frame(FIPS=jac_sim$FIPS,Mean=jmean,SD=jstd)
+  jdat<-merge(cty20,jdat,by="FIPS")
+  save(jdat,file="./Output Data/jdat.RData")
+}else{
+  load("./Output Data/jdat.RData")
+}
+
+#repeat for 2010 data
+if(!file.exists("./Output Data/jdat10.RData")){
+  jac_sim10<-sim_result10
+  load("./Intermediate Data/counties10.Rdata")
+  county10<-county10[order(county10$FIPS),]
+  jac_sim10<-jac_sim10[order(jac_sim10$FIPS),]
+  county10<-county10[county10$FIPS %in% jac_sim10$FIPS,]
+  #identical(county10$FIPS,jac_sim10$FIPS)
+  cty10<-st_drop_geometry(county10)
+  cty10<-as.data.frame(cty10)
+  #Calculate Jacand Similarity for each county
+  for (j in 2:ncol(jac_sim10)){
+    for(i in 1:nrow(jac_sim10)){
+      ten<-sim_result10[which(sim_result10[,j]==sim_result10[i,j]),"FIPS"]
+      twenty<-cty10[which(cty10$OUT10==cty10[i,"OUT10"]),"FIPS"]
+      #calculate jacand similarity
+      both<-length(intersect(ten,twenty))
+      all<-length(unique(c(ten,twenty)))
+      jac_sim10[i,j]<-both/all
+    }
+  }
+  jmean10<-apply(jac_sim10[,-1],1,mean)
+  jstd10<-apply(jac_sim10[,-1],1,sd)
+  jdat10<-data.frame(FIPS=jac_sim10$FIPS,Mean=jmean10,SD=jstd10)
+  jdat10<-merge(county10,jdat10,by="FIPS")
+  save(jdat10,file="./Output Data/jdat10.RData")
+}else{
+  load("./Output Data/jdat10.RData")
+}
+
+#plotting
+jacand_hist20<-ggplot(jdat,aes(x=Mean))+
+  geom_histogram(bins=20,fill="blue",color="black")+
+  theme_minimal()+
+  labs(title="Histogram of Jacand Similarity of Simulated CZs to CZ20",
+       x="Mean Jacand Similarity",
+       y="Frequency")
+jacand_hist10<-ggplot(jdat10,aes(x=Mean))+
+  geom_histogram(bins=20,fill="blue",color="black")+
+  theme_minimal()+
+  labs(title="Histogram of Jacand Similarity of Simulated CZs to OUT10",
+       x="Mean Jacand Similarity",
+       y="Frequency")
+
+ggarrange(jacand_hist10,jacand_hist20,nrow=2)
+
+mean(jdat$Mean)
+mean(jdat10$Mean)
+
+ggplot()+
+  geom_sf(data=jdat,aes(fill=Mean,color=Mean))+
+  theme_void()
+
+#Moran's I on Jacand Similarity
+library(spdep)
+#make neighborhood matrix from cz20
+if(!file.exists("./Output Data/nba.Rdata")){
+  #Source:
+  if(!file.exists("./Input Data/county_adjacency2023.csv")){
+    URL="https://www2.census.gov/geo/docs/reference/county_adjacency/county_adjacency2023.txt"
+    download.file(url=URL,destfile = "./Input Data/county_adjacency2023.txt")
+  }
+  nb<-read.delim("./Input Data/county_adjacency2023.txt",header=TRUE,sep="|")
+  nb<-nb[,c("County.GEOID","Neighbor.GEOID")]
+  colnames(nb)<-c("Origin","Neighbor")
+  #Do we drop self-adjacency? Currently no
+  nba=nb
+  #nba<-nb[nb$Origin !=nb$Neighbor,]
+  nba<-nba[order(nba$Origin,nba$Neighbor),]
+
+  #Now create an nb object for use in spatial analysis
+  nb<-poly2nb(cty20,queen = TRUE)
+
+  #needs to be edited to match official adjacency
+  fips<-data.frame(FIPS=cty20$FIPS,position=1:length(cty20$FIPS))
+  fips$position<-as.integer(fips$position)
+  for (i in 1:length(fips$FIPS)){
+    fp<-nba[nba$Origin==fips[i,"FIPS"],"Neighbor"]
+    if(length(fp)==1){ #if only neighbor is self then 0 neighbors
+      pos=0
+    }else{ #otherwise drop self and convert back to position
+      fp<-fp[fp!=fips[i,"FIPS"]]
+      pos<-fips[fips$FIPS %in% fp,"position"]
+      nb[[i]]<-pos
+    }
+  }
+  weights<-nb2listw(nb,style="W",zero.policy = TRUE)
+  save(weights,file="./Output Data/weights.Rdata")
+  save(nba,file="./Output Data/nba.Rdata")
+}
+load("./Output Data/weights.Rdata")
+#calculate Moran's I
+moran.mc(jdat$Mean,weights,nsim=999)
+
+
+
+queen_w <- queen_weights(jdat)
+lisa <- local_moran(queen_w, jdat["Mean"])
+jdat$lms <- lisa_values(lisa)
+jdat$clus<-lisa_clusters(lisa, cutoff = 0.05)+1
+jdat$lbls<-factor(jdat$clus,levels=1:7,labels = lisa_labels(lisa))
+pal=lisa_colors(lisa)
+#LISA map of jdat$Mean
+ggplot()+
+  geom_sf(data=jdat,aes(fill=lbls))+
+  scale_fill_manual(values=pal)+
+  theme_void()+
+  labs(title="LISA Cluster Map of Jacand Similarity of Simulated CZs to CZ20")
+```
