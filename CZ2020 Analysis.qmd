@@ -73,11 +73,10 @@ out20<-data.frame(
 county20<-county20%>%left_join(out20,by="FIPS") #join cluster assignments to county data
 if(output_delineation==TRUE){
   #Ouput data files for 2020 as csv and shapefile
-  county20 %>% select(GEOID,CZ20) %>% write.csv(file="./Output Data/county20.csv") 
+  county20 %>% select(GEOID,CZ20) %>%st_drop_geometry()%>% write.csv(file="./Output Data/county20.csv",row.names = FALSE) 
   county20 %>% select(GEOID,CZ20,CBSA) %>% st_write(driver = "ESRI Shapefile",dsn = "./Output Data/county20.shp",delete_layer = TRUE) 
   #Output data files for 2020 at Commuting Zone scale
   cz20_out<-county20 %>% select(GEOID,CZ20) %>% group_by(CZ20) %>% summarize()
-  cz20_out %>% write.csv(file="./Output Data/cz20.csv")
   cz20_out %>% st_write(driver = "ESRI Shapefile", dsn = "./Output Data/cz20.shp",delete_layer=TRUE)
   rm("cz20_out")
 }
@@ -167,8 +166,8 @@ default.table.format2(df=fit.output,grp="Class")
 
 #Write data with fit statistics
 if(output_delineation==TRUE) {
-  write.csv(cz20.fit[[1]],file="./Output Data/county_fit_statistics.csv")
-  write.csv(cz20.fit[[2]],file="./Output Data/cz_fit_statistics.csv")
+  write.csv(cz20.fit[[1]],file="./Output Data/county_fit_statistics.csv",row.names = FALSE)
+  write.csv(cz20.fit[[2]],file="./Output Data/cz_fit_statistics.csv",row.names=FALSE)
 }
 
 #Exploration of fit statistics for individual counties and CZ's described in text.
@@ -407,13 +406,14 @@ ggplot()+
 
 All code used to generate the data from publicly available sources as well as the code for generating this paper with its accompanying figures is available at <https://github.com/csfowler/CommutingZones2020.git>.
 
-##Author Contributions
-Christopher Fowler was the sole author of this publication and the code used to generate it.
+##Author Contributions Christopher Fowler was the sole author of this publication and the code used to generate it.
 
 ## Competing Interests
+
 The author declares no competing interests.
 
-##Acknowledgements
+## Acknowledgements
+
 The author would like to thank John Cromartie for helpful comments on an earlier draft of this paper.
 
 ## References

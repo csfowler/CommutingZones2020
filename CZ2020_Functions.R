@@ -108,16 +108,16 @@ my_grab_lodes<-function (state, year,
 
 #convert data to wide format in preparation for creating dissimilarity matrix
 prepData<-function(data){
-  cat("Original number of rows ",length(data$Cnty_Res),"\n")
+  #cat("Original number of rows ",length(data$Cnty_Res),"\n")
   # Get rid of incomplete records
   data<-data[complete.cases(data),]
-  cat("Removed records with missing information. Now  ",length(data$Cnty_Res), " records\n")
-  cat("Original number of counties ",length(unique(c(data$Cnty_Work,data$Cnty_Res))),"\n")
-  cat("Original number of unique work counties",length(unique(data$Cnty_Work)),"\n")
+  #cat("Removed records with missing information. Now  ",length(data$Cnty_Res), " records\n")
+  #cat("Original number of counties ",length(unique(c(data$Cnty_Work,data$Cnty_Res))),"\n")
+  #cat("Original number of unique work counties",length(unique(data$Cnty_Work)),"\n")
   common_values<-intersect(data$Cnty_Res,data$Cnty_Work)
   data<-data[which(data$Cnty_Work %in% common_values),]
   data<-data[which(data$Cnty_Res %in% common_values),]
-  cat("Removed records to make square matrix",length(common_values),"\n")
+  #cat("Removed records to make square matrix",length(common_values),"\n")
   # Convert to a wide matrix
   data.wide <- data %>%
     pivot_wider(names_from = Cnty_Work, values_from = FlowCount)
@@ -129,7 +129,7 @@ prepData<-function(data){
   data.wide$Cnty_Res<-paste0("Cnty_Res",data.wide$Cnty_Res)
   colnames(data.wide)[-1]<-paste0("Cnty_Wk",colnames(data.wide)[-1])
   # Now get the ordering correct to make it a square matrix
-  cat("Reordering columns and rows to make symetric")
+  #cat("Reordering columns and rows to make symetric")
   tmp<-data.wide$Cnty_Res
   data.wide<-data.wide[,-1]
   data.wide<-data.wide[res,wk]
