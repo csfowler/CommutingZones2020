@@ -581,9 +581,16 @@ fit.suite<-function(df,flo,czName,czYear,cbsaName,popCol){
  # where wij = (reslfi = reslfj)   <<--equals sign may be a typo, + ?
  #             --------------
  #             2* SUM k in C reslfk
- #By my interpretation weighting is half of the contribution of counties i and j to the total residential labor force of C
- #pij in first term is the pairwise correlation across six years of data for two counties i and j
- #So we add all of the correlations for i with its peers j then divide the whole thing by 2N where N is number of counties in C--Divide by 2N is right because sum sum  over i and j is weighted average, so each i in N sums to 1 but aall of them get reported twice.  Mystery is how to deal with i cor i alway being 1. This just gets included by assumption, otherwise the weighted average component doesn't work.
+ #By my interpretation weighting is half of the contribution of counties i and j 
+ # to the total residential labor force of C
+ #pij in first term is the pairwise correlation across six years of data for two
+ #counties i and j
+ #So we add all of the correlations for i with its peers j then divide the whole
+ #thing by 2N where N is number of counties in C--Divide by 2N is right because 
+ #sum sum  over i and j is weighted average, so each i in N sums to 1 but all of
+ #them get reported twice.  Mystery is how to deal with i cor i always being 1. 
+ #This just gets included by assumption, otherwise the weighted average component
+ #doesn't work.
   #a=c(1,2,3)
   #b=matrix(rep(a,length(a)),nrow=length(a))
   #b+t(b)
