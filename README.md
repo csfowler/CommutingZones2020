@@ -6,4 +6,4 @@ GIS files are either county boundaries or Commuting Zone boundaries
 as described in the Fowler (2024) paper and based on the measures fully described in Fowler and Jensen (2020).
 
 Use of this data should be accompanied by citation of the accompanying paper:
-Fowler, Christopher S. (2024) New Commuting Zones for 2020 https://doi.org/10.17605/OSF.IO/J256U
+Fowler, Christopher S. (2024) New Commuting Zone delineation for the U.S. using 2020 data https://doi.org/10.17605/OSF.IO/J256U
